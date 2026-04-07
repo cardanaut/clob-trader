@@ -237,7 +237,7 @@ require_once __DIR__ . '/../includes/header.php';
 
 <div class="sim-page">
   <h1>Simulator <span class="v2-badge">V2+</span>
-    <a href="/pages/simulator.php" style="font-size:12px;font-weight:400;color:#718096;text-decoration:none;margin-left:12px;padding:3px 8px;background:#1a2028;border:1px solid #2d3748;border-radius:5px;">&#x2190; Classic SIM</a>
+    <a href="<?= BASE_PATH ?>/pages/simulator-v2.php" style="font-size:12px;font-weight:400;color:#718096;text-decoration:none;margin-left:12px;padding:3px 8px;background:#1a2028;border:1px solid #2d3748;border-radius:5px;">&#x2190; Simulator</a>
   </h1>
   <p class="sub">Focused autoscan — capital/risk · price range · body% · direction · coordination · prev-vol · volume ratio</p>
 

@@ -1,8 +1,9 @@
 <?php
 declare(strict_types=1);
+require_once __DIR__ . '/config.php';
 
 function loadAssets(string $page): void {
-    $base = '/assets/';
+    $base = BASE_PATH . '/assets/';
     $root = dirname(__DIR__);
 
     $assets = [

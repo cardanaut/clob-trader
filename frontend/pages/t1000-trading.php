@@ -2738,13 +2738,14 @@ input:checked + .toggle-slider:before { transform: translateX(20px); background:
 </div>
 
 <script src="https://unpkg.com/lightweight-charts@4.2.0/dist/lightweight-charts.standalone.production.js"></script>
-<script src="/assets/js/t1000-core.js"></script>
-<script src="/assets/js/t1000-positions.js"></script>
-<script src="/assets/js/t1000-trades.js"></script>
-<script src="/assets/js/t1000-charts.js"></script>
-<script src="/assets/js/t1000-rejection.js"></script>
-<script src="/assets/js/t1000-export.js"></script>
-<script src="/assets/js/t1000-settings.js"></script>
+<?php $b = BASE_PATH; ?>
+<script src="<?= $b ?>/assets/js/t1000-core.js"></script>
+<script src="<?= $b ?>/assets/js/t1000-positions.js"></script>
+<script src="<?= $b ?>/assets/js/t1000-trades.js"></script>
+<script src="<?= $b ?>/assets/js/t1000-charts.js"></script>
+<script src="<?= $b ?>/assets/js/t1000-rejection.js"></script>
+<script src="<?= $b ?>/assets/js/t1000-export.js"></script>
+<script src="<?= $b ?>/assets/js/t1000-settings.js"></script>
 
 <!-- ── PIN Authorization Modal ───────────────────────────────────────────── -->
 <div id="wd-pin-modal">

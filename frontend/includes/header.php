@@ -26,7 +26,7 @@ $_apiAuth = $_apiPass ? base64_encode('admin:' . $_apiPass) : '';
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= htmlspecialchars($title) ?> — PolyChamp</title>
-    <link rel="icon" href="/assets/img/favicon.svg" type="image/svg+xml">
+    <link rel="icon" href="<?= BASE_PATH ?>/assets/img/favicon.svg" type="image/svg+xml">
     <?php if ($_apiAuth): ?>
     <meta name="x-api-auth" content="<?= htmlspecialchars($_apiAuth, ENT_QUOTES) ?>">
     <script>window._POLYCHAMP_AUTH='Basic <?= $_apiAuth ?>';</script>
@@ -35,10 +35,10 @@ $_apiAuth = $_apiPass ? base64_encode('admin:' . $_apiPass) : '';
 </head>
 <body>
 <nav class="navbar">
-    <a href="/pages/spike-trading.php" class="nav-brand">PolyChamp</a>
+    <a href="<?= BASE_PATH ?>/pages/t1000-trading.php" class="nav-brand">CLOB Trader</a>
     <ul class="nav-links">
-        <li><a href="/pages/t1000-trading.php" <?= $page === 't1000-trading' ? 'class="active"' : '' ?>>T1000</a></li>
-        <li style="margin-left:auto"><a href="/pages/simulator-v2.php" <?= $page === 'simulator-v2' ? 'class="active"' : '' ?>>Simulator</a></li>
+        <li><a href="<?= BASE_PATH ?>/pages/t1000-trading.php" <?= $page === 't1000-trading' ? 'class="active"' : '' ?>>T1000</a></li>
+        <li style="margin-left:auto"><a href="<?= BASE_PATH ?>/pages/simulator-v2.php" <?= $page === 'simulator-v2' ? 'class="active"' : '' ?>>Simulator</a></li>
     </ul>
     <div class="nav-status" id="systemStatus">
         <span class="status-dot" id="statusDot"></span>
