@@ -611,6 +611,10 @@ function defaultState() {
       distMin5m  : 0,  // min cumulative Binance dist% from cycle start (T+0 & T+1 entries, 5m)
       distMin15m : 0,  // same for 15m entries
       noSpikeFilter: false,  // skip spike threshold check entirely (research mode)
+      // Rejection-trade overrides: list of reason codes to trade instead of skip.
+      // Overrideable: time_filter, coord_wait, weak_body, weak_t1_body, weak_tc_body,
+      //               price_too_high, price_too_low, price_out_of_range
+      rejTradeReasons: [],
     }),
     LIVE_KALSHI: makeStrategy({
       ...s15,
@@ -1672,12 +1676,15 @@ function onCandle(candle) {
     const candleBody   = Math.abs((cOpen ?? 0) - (cClose ?? 0));
     const bodyThreshold = signalCfg.bodyPct ?? 76;
     if (bodyThreshold > 0 && candleHeight > 0 && (candleBody * 100 / candleHeight) < bodyThreshold) {
-      if (isLive) logger.info(`[t1000] ${key} ${crypto} SKIP weak_body body=${candleBody.toFixed(4)} height=${candleHeight.toFixed(4)} ratio=${(candleBody*100/candleHeight).toFixed(1)}%`);
-      if (key === 'LIVE') recordRejected(crypto, candle_size, direction, absSpike, yes_ask, no_ask,
-        direction === 'UP' ? yes_ask : no_ask, threshold, 'weak_body',
-        { body_ratio: parseFloat((candleBody * 100 / candleHeight).toFixed(1)), body: candleBody, height: candleHeight },
-        cycleStart, _ctxCandles);
-      continue;
+      const _rejOrWB = key === 'LIVE' && (strat.rejTradeReasons ?? []).includes('weak_body');
+      if (isLive) logger.info(`[t1000] ${key} ${crypto} ${_rejOrWB ? 'OVERRIDE' : 'SKIP'} weak_body body=${candleBody.toFixed(4)} height=${candleHeight.toFixed(4)} ratio=${(candleBody*100/candleHeight).toFixed(1)}%`);
+      if (!_rejOrWB) {
+        if (key === 'LIVE') recordRejected(crypto, candle_size, direction, absSpike, yes_ask, no_ask,
+          direction === 'UP' ? yes_ask : no_ask, threshold, 'weak_body',
+          { body_ratio: parseFloat((candleBody * 100 / candleHeight).toFixed(1)), body: candleBody, height: candleHeight },
+          cycleStart, _ctxCandles);
+        continue;
+      }
     }
     const bodyRatio = candleHeight > 0 ? parseFloat((candleBody * 100 / candleHeight).toFixed(1)) : null;
 
@@ -1740,11 +1747,14 @@ function onCandle(candle) {
         const hour = _td.getUTCHours();
         const dow  = _td.getUTCDay();
         if (skipHours.includes(hour) || skipDow.includes(dow)) {
-          if (isLive) logger.info(`[t1000] ${key} ${crypto} SKIP time_filter h${hour} dow${dow}`);
-          if (key === 'LIVE') recordRejected(crypto, candle_size, direction, absSpike, yes_ask, no_ask,
-            direction === 'UP' ? yes_ask : no_ask, threshold, 'time_filter',
-            { hour, dow }, cycleStart, _ctxCandles);
-          continue;
+          const _rejOrTF = key === 'LIVE' && (strat.rejTradeReasons ?? []).includes('time_filter');
+          if (isLive) logger.info(`[t1000] ${key} ${crypto} ${_rejOrTF ? 'OVERRIDE' : 'SKIP'} time_filter h${hour} dow${dow}`);
+          if (!_rejOrTF) {
+            if (key === 'LIVE') recordRejected(crypto, candle_size, direction, absSpike, yes_ask, no_ask,
+              direction === 'UP' ? yes_ask : no_ask, threshold, 'time_filter',
+              { hour, dow }, cycleStart, _ctxCandles);
+            continue;
+          }
         }
       }
     }
@@ -1755,7 +1765,8 @@ function onCandle(candle) {
     // D2 coordination buffer (LIVE only): require ≥coordMinCryptos cryptos firing same
     // direction in the same cycle before executing. Signals are held in liveCoordBuffers
     // for 15 seconds then flushed — all C85 candles for a given cycle arrive within ~2s.
-    if (key === 'LIVE' && (strat.coordMinCryptos ?? 0) > 1) {
+    // coord_wait override: bypass buffer entirely and execute immediately.
+    if (key === 'LIVE' && (strat.coordMinCryptos ?? 0) > 1 && !(strat.rejTradeReasons ?? []).includes('coord_wait')) {
       const coordKey = `${cycleStart}:${direction}`;
       if (!liveCoordBuffers.has(coordKey)) {
         liveCoordBuffers.set(coordKey, []);
@@ -1817,28 +1828,28 @@ function onCandle(candle) {
         ? (liveStrat[`maxPrice${durKey}_${crypto}_${direction}`] ?? liveStrat[`maxPrice${durKey}_${crypto}`] ?? (mirrorIs15m ? liveStrat.maxPrice15m : liveStrat.maxPrice5m) ?? liveStrat.maxPrice ?? MAX_ENTRY_PRICE)
         : (strat.maxPrice ?? MAX_ENTRY_PRICE);
     if (entryPrice < minPrice) {
-      if (isLive) logger.info(`[t1000] ${key} ${crypto} SKIP price_too_low entry=${(entryPrice*100).toFixed(0)}¢ < min=${(minPrice*100).toFixed(0)}¢`);
+      const _rejOrPL = key === 'LIVE' && (strat.rejTradeReasons ?? []).includes('price_too_low');
+      if (isLive) logger.info(`[t1000] ${key} ${crypto} ${_rejOrPL ? 'OVERRIDE' : 'SKIP'} price_too_low entry=${(entryPrice*100).toFixed(0)}¢ < min=${(minPrice*100).toFixed(0)}¢`);
       else logger.debug(`[t1000] ${key} ${crypto} skip: CLOB ${(entryPrice*100).toFixed(0)}¢ < floor ${(minPrice*100).toFixed(0)}¢`);
-      addActivity(key, {
-        time: new Date(), crypto, candle_size, direction, spike_pct: absSpike,
-        status: 'SKIP', reason: 'price_too_low', entryPrice,
-      });
-      if (key === 'LIVE') recordRejected(crypto, candle_size, direction, absSpike, yes_ask, no_ask,
-        entryPrice, threshold, 'price_too_low', { entry_c: Math.round(entryPrice*100), min_c: Math.round(minPrice*100) },
-        cycleStart, _ctxCandles);
-      continue;
+      if (!_rejOrPL) {
+        addActivity(key, { time: new Date(), crypto, candle_size, direction, spike_pct: absSpike, status: 'SKIP', reason: 'price_too_low', entryPrice });
+        if (key === 'LIVE') recordRejected(crypto, candle_size, direction, absSpike, yes_ask, no_ask,
+          entryPrice, threshold, 'price_too_low', { entry_c: Math.round(entryPrice*100), min_c: Math.round(minPrice*100) },
+          cycleStart, _ctxCandles);
+        continue;
+      }
     }
     if (entryPrice > maxPrice) {
-      if (isLive) logger.info(`[t1000] ${key} ${crypto} SKIP price_too_high entry=${(entryPrice*100).toFixed(0)}¢ > max=${(maxPrice*100).toFixed(0)}¢`);
+      const _rejOrPH = key === 'LIVE' && (strat.rejTradeReasons ?? []).includes('price_too_high');
+      if (isLive) logger.info(`[t1000] ${key} ${crypto} ${_rejOrPH ? 'OVERRIDE' : 'SKIP'} price_too_high entry=${(entryPrice*100).toFixed(0)}¢ > max=${(maxPrice*100).toFixed(0)}¢`);
       else logger.debug(`[t1000] ${key} ${crypto} skip: CLOB ${(entryPrice*100).toFixed(0)}¢ > limit ${(maxPrice*100).toFixed(0)}¢`);
-      addActivity(key, {
-        time: new Date(), crypto, candle_size, direction, spike_pct: absSpike,
-        status: 'SKIP', reason: 'price_too_high', entryPrice,
-      });
-      if (key === 'LIVE') recordRejected(crypto, candle_size, direction, absSpike, yes_ask, no_ask,
-        entryPrice, threshold, 'price_too_high', { entry_c: Math.round(entryPrice*100), max_c: Math.round(maxPrice*100) },
-        cycleStart, _ctxCandles);
-      continue;
+      if (!_rejOrPH) {
+        addActivity(key, { time: new Date(), crypto, candle_size, direction, spike_pct: absSpike, status: 'SKIP', reason: 'price_too_high', entryPrice });
+        if (key === 'LIVE') recordRejected(crypto, candle_size, direction, absSpike, yes_ask, no_ask,
+          entryPrice, threshold, 'price_too_high', { entry_c: Math.round(entryPrice*100), max_c: Math.round(maxPrice*100) },
+          cycleStart, _ctxCandles);
+        continue;
+      }
     }
 
     // Record paper trade (LIVE uses duration suffix to allow 5m+15m concurrently)
@@ -2339,9 +2350,13 @@ function runT1Check(t1Key) {
       const tcBody  = Math.abs(t1Close - t0Open);
       const bodyRatio = tcRange > 0 ? tcBody / tcRange * 100 : 100;
       if (bodyRatio < bodyPct) {
-        logger.info(`[t1000] T+1 ${key} ${crypto} C${candleSize} SKIP weak_${t1Label.toLowerCase()}_body body=${bodyRatio.toFixed(1)}% min=${bodyPct}%`);
-        _cntRej(`weak_${t1Label.toLowerCase()}_body`, { bodyRatio: parseFloat(bodyRatio.toFixed(1)) });
-        return;
+        const _t1BodyReason = `weak_${t1Label.toLowerCase()}_body`;
+        const _rejOrT1B = key === 'LIVE' && (strat.rejTradeReasons ?? []).includes(_t1BodyReason);
+        logger.info(`[t1000] T+1 ${key} ${crypto} C${candleSize} ${_rejOrT1B ? 'OVERRIDE' : 'SKIP'} ${_t1BodyReason} body=${bodyRatio.toFixed(1)}% min=${bodyPct}%`);
+        if (!_rejOrT1B) {
+          _cntRej(_t1BodyReason, { bodyRatio: parseFloat(bodyRatio.toFixed(1)) });
+          return;
+        }
       }
     }
   }
@@ -2400,8 +2415,11 @@ function runT1Check(t1Key) {
   const t1MaxPriceEff = _dirBounds.effMax;
   const t1MinPriceEff = _dirBounds.effMin;
   if (!signalCfg.allowPriceOor && (entryPrice < t1MinPriceEff || entryPrice > t1MaxPriceEff)) {
-    logger.info(`[t1000] T+1 ${key} ${crypto} C${candleSize} SKIP price_out_of_range (${(entryPrice*100).toFixed(0)}¢)`);
-    _cntRej('price_out_of_range', { entry_c: Math.round(entryPrice * 100) }); return;
+    const _rejOrPOOR = key === 'LIVE' && (strat.rejTradeReasons ?? []).includes('price_out_of_range');
+    logger.info(`[t1000] T+1 ${key} ${crypto} C${candleSize} ${_rejOrPOOR ? 'OVERRIDE' : 'SKIP'} price_out_of_range (${(entryPrice*100).toFixed(0)}¢)`);
+    if (!_rejOrPOOR) {
+      _cntRej('price_out_of_range', { entry_c: Math.round(entryPrice * 100) }); return;
+    }
   }
 
   const isLive = key === 'LIVE' || key === 'LIVE_KALSHI' || key === 'LIVE_MINI';
@@ -3698,6 +3716,7 @@ function getState() {
         noSpikeFilter   : s.noSpikeFilter   ?? false,
         allowLowVol     : s.allowLowVol     ?? true,
         allowPriceOor   : s.allowPriceOor   ?? false,
+        rejTradeReasons : s.rejTradeReasons ?? [],
         lockedThresholds: s.lockedThresholds ?? {},
         settingsHistory : s.settingsHistory  ?? [],
         // Full resolved-trade history for the P&L chart (all entries in activityLog, not the 50-entry slice)
@@ -3951,6 +3970,7 @@ function updateConfig(stratKey, changes) {
     if (changes.noSpikeFilter         !== undefined) strat.noSpikeFilter         = Boolean(changes.noSpikeFilter);
     if (changes.allowLowVol           !== undefined) strat.allowLowVol           = Boolean(changes.allowLowVol);
     if (changes.allowPriceOor         !== undefined) strat.allowPriceOor         = Boolean(changes.allowPriceOor);
+    if (changes.rejTradeReasons       !== undefined) strat.rejTradeReasons       = Array.isArray(changes.rejTradeReasons) ? changes.rejTradeReasons : [];
     if (changes.deleteHistoryIndex    !== undefined) {
       const idx = parseInt(changes.deleteHistoryIndex);
       if (!isNaN(idx) && strat.settingsHistory && idx >= 0 && idx < strat.settingsHistory.length)

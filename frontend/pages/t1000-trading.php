@@ -923,6 +923,8 @@ input:checked + .toggle-slider:before { transform: translateX(20px); background:
         </div>
         <!-- Per-reason FPR stats pills -->
         <div id="rejected-stats" style="display:none;flex-wrap:wrap;gap:6px;margin-bottom:8px;padding:6px 8px;background:#171e2b;border-radius:6px;"></div>
+        <!-- Trade-on-rejection panel -->
+        <div id="rej-trade-panel" style="display:none;margin-bottom:8px;padding:8px 10px;background:#151c2a;border:1px solid #2d3748;border-radius:6px;"></div>
         <div id="log-rejected" class="activity-log" style="max-height:320px;">
           <div class="empty-log">No rejected candidates</div>
         </div>

@@ -239,35 +239,47 @@ function drawScatterSvg(signals, metric, threshold, yMin, yMax, th, bodyPct, min
   </div>`;
 }
 
+// Reasons that can be overridden to trade instead of skip
+const REJ_OVERRIDEABLE = ['time_filter','coord_wait','weak_body','weak_t1_body','weak_tc_body','price_too_high','price_too_low','price_out_of_range'];
+
+const REJ_STATS_LABEL = {
+  below_threshold:    'LOW SPIKE',   weak_body: 'WEAK BODY',     bad_slot: 'BAD SLOT',
+  dir_filter:         'DIR FILT',    time_filter: 'TIME FILT',   coord_wait: 'COORD WAIT',
+  no_liquidity:       'NO LIQUID',   price_too_high: 'PRICE↑',   price_too_low: 'PRICE↓',
+  already_pending:    'PENDING',     asset_already_open: 'OPEN', max_positions: 'MAX POS',
+  signal_too_stale:   'STALE',       weak_t1_body: 'WEAK T1',    weak_tc_body: 'WEAK TC',
+  price_out_of_range: 'PRICE OOR',
+};
+const REJ_STATS_BG = {
+  below_threshold:    '#1e2235', weak_body: '#3d2a00', bad_slot: '#3d2a00',
+  dir_filter:         '#1a2535', time_filter: '#1a2535', coord_wait: '#1a2535',
+  no_liquidity:       '#3d1515', price_too_high: '#3d1515', price_too_low: '#3d1515',
+  already_pending:    '#1a2535', asset_already_open: '#1a2535', max_positions: '#1a2535',
+  signal_too_stale:   '#2d2d2d', weak_t1_body: '#3d2a00', weak_tc_body: '#3d2a00',
+  price_out_of_range: '#2d2000',
+};
+
 function renderRejectedStats() {
-  const el = document.getElementById('rejected-stats');
-  if (!el || !_rejectedStats?.byReason) { if (el) el.style.display = 'none'; return; }
+  const el    = document.getElementById('rejected-stats');
+  const panel = document.getElementById('rej-trade-panel');
+  if (!el || !_rejectedStats?.byReason) {
+    if (el)    el.style.display    = 'none';
+    if (panel) panel.style.display = 'none';
+    return;
+  }
   const { byReason } = _rejectedStats;
-  const reasonLabel = {
-    below_threshold:    'LOW SPIKE', weak_body: 'WEAK BODY',   bad_slot: 'BAD SLOT',
-    dir_filter:         'DIR FILT',  time_filter: 'TIME FILT',  coord_wait: 'COORD WAIT',
-    no_liquidity:       'NO LIQUID', price_too_high: 'PRICE↑',  price_too_low: 'PRICE↓',
-    already_pending:    'PENDING',   asset_already_open: 'OPEN', max_positions: 'MAX POS',
-    signal_too_stale:   'STALE',
-  };
-  const reasonBg = {
-    below_threshold:    '#1e2235', weak_body: '#3d2a00', bad_slot: '#3d2a00',
-    dir_filter:         '#1a2535', time_filter: '#1a2535', coord_wait: '#1a2535',
-    no_liquidity:       '#3d1515', price_too_high: '#3d1515', price_too_low: '#3d1515',
-    already_pending:    '#1a2535', asset_already_open: '#1a2535', max_positions: '#1a2535',
-    signal_too_stale:   '#2d2d2d',
-  };
+
+  // ── Pills ──────────────────────────────────────────────────────────────────
   const pills = Object.entries(byReason)
     .sort((a,b) => b[1].total - a[1].total)
     .map(([reason, s]) => {
-      const label = reasonLabel[reason] || reason.replace(/_/g,' ').toUpperCase();
-      const bg    = reasonBg[reason]    || '#1e2235';
+      const label = REJ_STATS_LABEL[reason] || reason.replace(/_/g,' ').toUpperCase();
+      const bg    = REJ_STATS_BG[reason]    || '#1e2235';
       const fprStr = s.fpr != null
         ? `<span style="color:${s.fpr>=60?'#fc8181':s.fpr>=30?'#f6ad55':'#68d391'};font-weight:700;margin-left:5px;">${s.fpr}% FP</span>`
         : '';
-      const known = s.WIN + s.LOSS;
       const title = `${s.total} total | ${s.WIN} would-WIN | ${s.LOSS} correct-SKIP | ${s.unknown} unknown`;
-      return `<span title="${title}" style="display:inline-flex;align-items:center;gap:3px;padding:3px 8px;border-radius:4px;${bg ? `background:${bg};` : ''}font-size:11px;cursor:default;">
+      return `<span title="${title}" style="display:inline-flex;align-items:center;gap:3px;padding:3px 8px;border-radius:4px;background:${bg};font-size:11px;cursor:default;">
         <span style="color:#a0aec0">${label}</span>
         <span style="color:#718096">${s.total}</span>
         ${fprStr}
@@ -275,6 +287,67 @@ function renderRejectedStats() {
     }).join('');
   el.innerHTML = pills;
   el.style.display = pills ? 'flex' : 'none';
+
+  // ── Trade-on-rejection panel ───────────────────────────────────────────────
+  if (!panel) return;
+  const activeReasons = state?.LIVE?.rejTradeReasons ?? [];
+
+  // Only show rows for overrideable reasons that have stats data
+  const rows = REJ_OVERRIDEABLE
+    .filter(r => byReason[r])
+    .map(reason => {
+      const s     = byReason[reason];
+      const label = REJ_STATS_LABEL[reason] || reason.replace(/_/g,' ').toUpperCase();
+      const checked = activeReasons.includes(reason);
+      const wr    = (s.WIN + s.LOSS) > 0 ? Math.round(s.WIN / (s.WIN + s.LOSS) * 100) : null;
+      const wrStr = wr != null
+        ? `<span style="color:${wr>=80?'#68d391':wr>=60?'#f6ad55':'#fc8181'};font-weight:700;">${wr}% WR</span>`
+        : `<span style="color:#4a5568">—</span>`;
+      const fpr   = s.fpr;
+      const fprStr = fpr != null
+        ? `<span style="color:${fpr>=60?'#fc8181':fpr>=30?'#f6ad55':'#68d391'};margin-left:6px;">${fpr}% FP</span>`
+        : '';
+      const totalStr = `<span style="color:#718096;font-size:10px;">${s.total} signals</span>`;
+      return `<label style="display:flex;align-items:center;gap:8px;padding:4px 6px;border-radius:4px;cursor:pointer;${checked?'background:#1a2f1a;':''}">
+        <input type="checkbox" data-rej-reason="${reason}" ${checked?'checked':''} onchange="toggleRejTrade(this)" style="cursor:pointer;accent-color:#68d391;">
+        <span style="color:#cbd5e0;font-size:11px;min-width:80px;">${label}</span>
+        ${wrStr}${fprStr}
+        <span style="margin-left:auto;">${totalStr}</span>
+      </label>`;
+    });
+
+  if (rows.length === 0) {
+    panel.style.display = 'none';
+    return;
+  }
+
+  panel.innerHTML = `
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+      <span style="color:#68d391;font-size:11px;font-weight:700;letter-spacing:.05em;">⚡ TRADE ON REJECTION</span>
+      <span style="color:#4a5568;font-size:10px;">tick to trade these signals despite filter</span>
+    </div>
+    <div style="display:flex;flex-wrap:wrap;gap:2px;">${rows.join('')}</div>`;
+  panel.style.display = 'block';
+}
+
+async function toggleRejTrade(checkbox) {
+  const reason  = checkbox.dataset.rejReason;
+  const current = (state?.LIVE?.rejTradeReasons ?? []).slice();
+  if (checkbox.checked) {
+    if (!current.includes(reason)) current.push(reason);
+  } else {
+    const idx = current.indexOf(reason);
+    if (idx !== -1) current.splice(idx, 1);
+  }
+  try {
+    await apiFetch('/t1000/config', 'POST', { strategy: 'LIVE', rejTradeReasons: current });
+    // Refresh state so the checkbox re-renders with correct highlight
+    await pollState();
+    renderRejectedStats();
+  } catch (e) {
+    checkbox.checked = !checkbox.checked; // revert on error
+    console.error('toggleRejTrade failed:', e);
+  }
 }
 
 function renderRejected() {
