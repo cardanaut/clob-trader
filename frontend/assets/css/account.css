@@ -1,0 +1,20 @@
+/* PolyChamp — Account page */
+
+.stats-bar {
+    grid-template-columns: repeat(4, 1fr);
+}
+
+#statTrades  { color: var(--accent); }
+#statVolume  { color: var(--accent); }
+#statWinRate { color: var(--text); font-size: 20px; }
+
+.market-cell {
+    max-width: 340px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+@media (max-width: 768px) {
+    .stats-bar { grid-template-columns: repeat(2, 1fr); }
+}

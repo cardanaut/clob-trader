@@ -1,0 +1,15 @@
+{
+  "note": "LIVE per-trio maxTrade backup before flattening to $150 (2026-03-19)",
+  "LIVE": {
+    "maxTrade5m": 150,
+    "maxTrade15m": 500,
+    "maxTrade5m_BTC": 1000,
+    "maxTrade5m_ETH": 500,
+    "maxTrade5m_SOL": 150,
+    "maxTrade5m_XRP": 150,
+    "maxTrade15m_BTC": 1000,
+    "maxTrade15m_ETH": 500,
+    "maxTrade15m_SOL": 150,
+    "maxTrade15m_XRP": 150
+  }
+}

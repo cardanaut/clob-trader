@@ -1,0 +1,311 @@
+/* Trade page */
+
+.trade-layout {
+    display: grid;
+    grid-template-columns: 300px 1fr;
+    gap: 0;
+    align-items: start;
+}
+
+/* Sortable table headers */
+.data-table thead th[style*="cursor: pointer"] {
+    transition: background-color 0.15s ease;
+}
+.data-table thead th[style*="cursor: pointer"]:hover {
+    background-color: var(--bg-hover);
+}
+.sort-indicator {
+    opacity: 0.7;
+    display: inline-block;
+    margin-left: 4px;
+}
+
+.trade-sidebar {
+    border-right: 1px solid var(--border);
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    position: sticky;
+    top: 56px;
+    max-height: calc(100vh - 56px);
+    overflow-y: auto;
+}
+
+.trade-main {
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+/* Engine toggle */
+.engine-toggle {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 16px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+}
+
+.engine-toggle-label {
+    flex: 1;
+    font-weight: 600;
+    font-size: 14px;
+}
+
+.engine-status {
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-top: 2px;
+}
+
+/* Toggle switch */
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 44px;
+    height: 24px;
+    flex-shrink: 0;
+}
+.switch input { display: none; }
+.switch-slider {
+    position: absolute;
+    inset: 0;
+    background: var(--border);
+    border-radius: 24px;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+.switch-slider::before {
+    content: '';
+    position: absolute;
+    width: 18px; height: 18px;
+    left: 3px; top: 3px;
+    background: #fff;
+    border-radius: 50%;
+    transition: transform 0.2s;
+}
+.switch input:checked + .switch-slider { background: var(--accent); }
+.switch input:checked + .switch-slider::before { transform: translateX(20px); }
+
+/* Balance bar */
+.balance-bar {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 10px 12px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-size: 13px;
+    position: relative;
+}
+.balance-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 4px;
+}
+.balance-stat-label {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-muted);
+    margin-bottom: 2px;
+}
+.balance-amount {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--text);
+    font-variant-numeric: tabular-nums;
+}
+.balance-refresh {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    font-size: 14px;
+    padding: 2px 4px;
+    border-radius: 4px;
+}
+.balance-refresh:hover { color: var(--text); background: var(--bg-hover); }
+
+/* Config form in sidebar */
+.trade-config-section {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+.trade-config-section h3 {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-muted);
+    margin: 0;
+}
+.config-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+}
+.config-row label {
+    font-size: 12px;
+    color: var(--text-muted);
+    flex: 1;
+}
+.config-input {
+    width: 80px;
+    text-align: right;
+    font-size: 13px;
+    padding: 4px 8px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    color: var(--text);
+    border-radius: 4px;
+}
+.config-input:focus { outline: none; border-color: var(--accent); }
+
+.save-config-btn {
+    width: 100%;
+    margin-top: 4px;
+}
+
+/* Dry-run notice */
+.dry-run-notice {
+    padding: 8px 12px;
+    background: rgba(210, 153, 34, 0.1);
+    border: 1px solid rgba(210, 153, 34, 0.3);
+    border-radius: 6px;
+    font-size: 11px;
+    color: var(--yellow, #d29922);
+    line-height: 1.5;
+}
+
+/* Section headers */
+.trade-section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 4px;
+}
+.trade-section-header h2 {
+    font-size: 14px;
+    font-weight: 600;
+    margin: 0;
+}
+.candidate-count {
+    font-size: 11px;
+    color: var(--text-muted);
+}
+
+/* Status badge in position table */
+.pos-status-open     { color: var(--accent); font-weight: 600; }
+.pos-status-pending  { color: var(--yellow, #d29922); }
+.pos-status-closed   { color: var(--text-muted); }
+.pos-status-failed   { color: var(--red); }
+
+/* Log event types */
+.log-open_position   { color: var(--green); }
+.log-close_position  { color: var(--text-muted); }
+.log-counter_trade_detected { color: var(--yellow, #d29922); }
+.log-error           { color: var(--red); }
+.log-engine_start    { color: var(--accent); }
+.log-skip_trade      { color: var(--text-muted); font-style: italic; }
+
+/* Missed opportunities table */
+.missed-opportunity-row {
+    background: rgba(255, 149, 0, 0.03);
+    border-left: 3px solid #ff9500;
+}
+.missed-opportunity-row:hover {
+    background: rgba(255, 149, 0, 0.08);
+}
+.missed-reason {
+    color: #ff9500;
+    font-weight: 600;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    padding: 2px 6px;
+    background: rgba(255, 149, 0, 0.12);
+    border-radius: 3px;
+    display: inline-block;
+}
+
+/* Tabs */
+.tabs-container {
+    display: flex;
+    flex-direction: column;
+}
+
+.tabs-header {
+    display: flex;
+    gap: 0;
+    border-bottom: 2px solid var(--border);
+    background: var(--bg);
+}
+
+.tab-btn {
+    padding: 12px 20px;
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    position: relative;
+    transition: all 0.2s;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -2px;
+}
+
+.tab-btn:hover {
+    color: var(--text);
+    background: var(--bg-hover);
+}
+
+.tab-btn.active {
+    color: var(--accent);
+    border-bottom-color: var(--accent);
+}
+
+.tab-count {
+    display: inline-block;
+    min-width: 20px;
+    padding: 2px 6px;
+    margin-left: 6px;
+    background: var(--border);
+    color: var(--text-muted);
+    font-size: 11px;
+    font-weight: 600;
+    border-radius: 10px;
+    text-align: center;
+}
+
+.tab-btn.active .tab-count {
+    background: var(--accent);
+    color: #fff;
+}
+
+.tab-panel {
+    display: none;
+}
+
+.tab-panel.active {
+    display: block;
+}
+
+.tab-panel-header {
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 8px;
+}

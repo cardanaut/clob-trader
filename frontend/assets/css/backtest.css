@@ -1,0 +1,616 @@
+/* PolyChamp — Backtest Page */
+
+.bt-layout {
+    display: grid;
+    grid-template-columns: 280px 1fr;
+    gap: 24px;
+    padding: 24px;
+    align-items: start;
+}
+
+@media (max-width: 900px) {
+    .bt-layout { grid-template-columns: 1fr; }
+}
+
+/* Config panel */
+.bt-config {
+    position: sticky;
+    top: 72px;
+    max-height: calc(100vh - 88px);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+}
+
+/* ── Tab bar ── */
+.bt-tabs {
+    display: flex;
+    border-bottom: 1px solid var(--border);
+}
+
+.bt-tab {
+    flex: 1;
+    padding: 11px 8px;
+    background: none;
+    border: none;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -1px;
+    color: var(--text-muted);
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    cursor: pointer;
+    transition: color 0.15s, border-color 0.15s;
+}
+
+.bt-tab:hover {
+    color: var(--text);
+}
+
+.bt-tab.active {
+    color: var(--accent);
+    border-bottom-color: var(--accent);
+}
+
+/* ── Tab panels ── */
+.bt-tab-panel {
+    display: none;
+    flex-direction: column;
+    gap: 14px;
+    padding: 16px;
+}
+
+.bt-tab-panel.active {
+    display: flex;
+}
+
+/* ── Run button wrapper ── */
+.bt-run-wrap {
+    padding: 0 16px 16px;
+}
+
+/* ── Strategy selector cards ── */
+.strategy-cards {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+}
+
+.strategy-card {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 10px 12px;
+    cursor: pointer;
+    transition: border-color 0.15s, background 0.15s;
+}
+
+.strategy-card:hover {
+    border-color: var(--accent);
+    background: var(--bg-hover);
+}
+
+.strategy-card.active {
+    border-color: var(--accent);
+    background: rgba(88, 166, 255, 0.08);
+}
+
+.sc-name {
+    font-weight: 600;
+    font-size: 12px;
+    color: var(--text);
+    margin-bottom: 3px;
+}
+
+.strategy-card.active .sc-name {
+    color: var(--accent);
+}
+
+.sc-desc {
+    font-size: 11px;
+    color: var(--text-muted);
+    line-height: 1.4;
+}
+
+/* MANUAL strategy card — full width */
+.strategy-card-manual {
+    grid-column: span 2;
+    border-style: dashed;
+}
+
+/* ── Form groups ── */
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.form-group label {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+}
+
+.form-input {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    color: var(--text);
+    font-size: 13px;
+    padding: 8px 10px;
+    width: 100%;
+    transition: border-color 0.15s;
+}
+
+.form-input:focus {
+    outline: none;
+    border-color: var(--accent);
+}
+
+/* ── Run button ── */
+.btn-run {
+    width: 100%;
+    padding: 10px;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.btn-run:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* ── Entry timing mode pills ── */
+.entry-timing-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+.entry-timing-header label {
+    margin: 0;
+    flex-shrink: 0;
+}
+
+.entry-mode-pills {
+    display: flex;
+    gap: 4px;
+    flex-shrink: 0;
+}
+
+.entry-mode-pill {
+    padding: 3px 10px;
+    font-size: 11px;
+    font-weight: 600;
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    background: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: border-color 0.15s, color 0.15s, background 0.15s;
+    white-space: nowrap;
+}
+
+.entry-mode-pill:hover {
+    border-color: var(--accent);
+    color: var(--text);
+}
+
+.entry-mode-pill.active {
+    border-color: var(--accent);
+    background: rgba(88, 166, 255, 0.12);
+    color: var(--accent);
+}
+
+/* Dim pills when gauge is off */
+.entry-mode-pills.gauge-off .entry-mode-pill {
+    opacity: 0.4;
+    pointer-events: none;
+}
+
+/* ── Gauge ── */
+.form-range {
+    width: 100%;
+    accent-color: var(--accent);
+    cursor: pointer;
+    margin-top: 4px;
+}
+
+.gauge-track {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 10px;
+    color: var(--text-muted);
+    margin-top: 2px;
+}
+
+.gauge-track .gauge-value {
+    font-size: 11px;
+    margin-left: 0;
+    text-align: center;
+}
+
+.gauge-value {
+    font-weight: 600;
+    color: var(--text-muted);
+    margin-left: 8px;
+    font-size: 13px;
+    text-transform: none;
+    letter-spacing: normal;
+}
+
+.gauge-value.gauge-active {
+    color: var(--accent);
+}
+
+.form-hint {
+    font-size: 11px;
+    color: var(--text-muted);
+    line-height: 1.4;
+    margin-top: 2px;
+}
+
+/* ── Invert direction toggle ── */
+.invert-toggle {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 10px 12px;
+}
+
+.invert-label {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text);
+    margin: 0;
+    text-transform: none;
+    letter-spacing: normal;
+}
+
+.invert-label input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    accent-color: var(--accent);
+    cursor: pointer;
+    flex-shrink: 0;
+}
+
+.invert-text {
+    font-weight: 600;
+}
+
+.invert-toggle.active {
+    border-color: var(--accent);
+    background: rgba(88, 166, 255, 0.08);
+}
+
+/* ── Results panel ── */
+.bt-results {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+/* ── Scenario comparison bar ── */
+.bt-scenarios {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+}
+
+.scenario-card {
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    padding: 10px 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.scenario-current {
+    background: var(--bg-card);
+    border-color: rgba(88,166,255,0.3);
+}
+
+.scenario-bear {
+    background: rgba(248,81,73,0.05);
+    border-color: rgba(248,81,73,0.25);
+}
+
+.scenario-bull {
+    background: rgba(63,185,80,0.05);
+    border-color: rgba(63,185,80,0.25);
+}
+
+.scenario-label {
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    color: var(--text-muted);
+    margin-bottom: 2px;
+}
+
+.scenario-return {
+    font-size: 18px;
+    font-weight: 700;
+    line-height: 1;
+}
+
+.scenario-pnl {
+    font-size: 12px;
+    color: var(--text-muted);
+    font-weight: 500;
+}
+
+.scenario-wr {
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-top: 1px;
+}
+
+@media (max-width: 700px) {
+    .bt-scenarios { grid-template-columns: 1fr; }
+}
+
+/* ── Metrics bar ── */
+.stats-bar {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+    gap: 8px;
+}
+
+/* Compact stat cards for backtest (overrides base.css) */
+.bt-results .stat-card {
+    padding: 10px 14px;
+}
+
+.bt-results .stat-value {
+    font-size: 18px;
+}
+
+.bt-results .stat-label {
+    font-size: 11px;
+    margin-top: 2px;
+}
+
+@media (max-width: 600px) {
+    .stats-bar { grid-template-columns: repeat(2, 1fr); }
+}
+
+/* ── Equity chart ── */
+.chart-wrap {
+    position: relative;
+    height: 280px;
+    padding: 16px;
+}
+
+.chart-wrap canvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+}
+
+.chart-empty {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-muted);
+    font-size: 13px;
+}
+
+/* ── Loading overlay ── */
+.bt-loading {
+    position: fixed;
+    inset: 0;
+    background: rgba(13, 17, 23, 0.75);
+    z-index: 200;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    color: var(--text-muted);
+    font-size: 14px;
+}
+
+.bt-spinner {
+    width: 36px;
+    height: 36px;
+    border: 3px solid var(--border);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* ── Trade log status badges ── */
+.status-win     { color: var(--green); font-weight: 600; }
+.status-loss    { color: var(--red);   font-weight: 600; }
+.status-pending { color: var(--yellow); }
+
+.pnl-pos { color: var(--green); }
+.pnl-neg { color: var(--red); }
+
+/* ── Entry price gauge cell ── */
+.price-gauge {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    min-width: 64px;
+}
+.price-gauge-track {
+    height: 5px;
+    background: rgba(125,133,144,0.18);
+    border-radius: 3px;
+    overflow: hidden;
+}
+.price-gauge-fill {
+    height: 100%;
+    border-radius: 3px;
+    background: var(--accent);
+    transition: width 0.2s;
+}
+.price-gauge-fill.price-high { background: var(--red); }
+.price-gauge-fill.price-mid  { background: var(--yellow); }
+.price-gauge-label {
+    font-size: 11px;
+    color: var(--text-muted);
+    line-height: 1;
+}
+
+/* ── Elapsed % gauge cell ── */
+.elapsed-gauge {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    min-width: 64px;
+}
+.elapsed-gauge-track {
+    height: 5px;
+    background: rgba(125,133,144,0.18);
+    border-radius: 3px;
+    overflow: hidden;
+}
+.elapsed-gauge-fill {
+    height: 100%;
+    border-radius: 3px;
+    background: var(--accent);
+    transition: width 0.2s;
+}
+.elapsed-gauge-fill.elapsed-high  { background: var(--red); }
+.elapsed-gauge-fill.elapsed-mid   { background: var(--yellow); }
+.elapsed-gauge-label {
+    font-size: 11px;
+    color: var(--text-muted);
+    line-height: 1;
+}
+
+/* ── Saved profiles ── */
+.bt-save-row {
+    display: flex;
+    gap: 6px;
+    padding: 0 16px 12px;
+    align-items: center;
+}
+
+.bt-save-input {
+    flex: 1;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    color: var(--text);
+    font-size: 12px;
+    padding: 6px 10px;
+    transition: border-color 0.15s;
+}
+
+.bt-save-input:focus {
+    outline: none;
+    border-color: var(--accent);
+}
+
+.bt-save-input::placeholder {
+    color: var(--text-muted);
+}
+
+.profiles-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.profile-empty {
+    text-align: center;
+    color: var(--text-muted);
+    font-size: 12px;
+    padding: 20px 0;
+    line-height: 1.6;
+}
+
+.profile-card {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 10px 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+    transition: border-color 0.15s;
+}
+
+.profile-card:hover {
+    border-color: rgba(88,166,255,0.35);
+}
+
+.profile-card-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.profile-card-name {
+    font-weight: 600;
+    font-size: 13px;
+    color: var(--text);
+    flex: 1;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.profile-card-date {
+    font-size: 10px;
+    color: var(--text-muted);
+    flex-shrink: 0;
+}
+
+.profile-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+}
+
+.profile-tag {
+    font-size: 10px;
+    padding: 2px 7px;
+    border-radius: 20px;
+    background: rgba(125,133,144,0.15);
+    color: var(--text-muted);
+    white-space: nowrap;
+}
+
+.profile-tag.tag-accent {
+    background: rgba(88,166,255,0.12);
+    color: var(--accent);
+}
+
+.profile-tag.tag-inverted {
+    background: rgba(248,81,73,0.12);
+    color: var(--red);
+}
+
+.profile-card-actions {
+    display: flex;
+    gap: 6px;
+    margin-top: 2px;
+}

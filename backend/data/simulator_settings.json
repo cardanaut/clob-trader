@@ -1,0 +1,106 @@
+{
+  "bl": 2700,
+  "rk": 17,
+  "slip": 2,
+  "mn": 5,
+  "mx": 89,
+  "th": null,
+  "body": 76,
+  "minwr": 0.9,
+  "minth": null,
+  "maxpos": 1,
+  "tp": 5,
+  "t1": false,
+  "t1tc": false,
+  "t0off": false,
+  "t1off": false,
+  "tcoff": false,
+  "t1adj": 5,
+  "df": null,
+  "dt": null,
+  "cr": null,
+  "kal": false,
+  "day": null,
+  "trio5m": {
+    "BTC": {
+      "period": 85,
+      "th": 0.15
+    },
+    "ETH": {
+      "period": 85,
+      "th": 0.12
+    },
+    "SOL": {
+      "period": 85,
+      "th": 0.12
+    },
+    "XRP": {
+      "period": 85,
+      "th": 0.18
+    }
+  },
+  "trio15m": {
+    "ETH": {
+      "period": 150,
+      "th": 0.26
+    },
+    "SOL": {
+      "period": 150,
+      "th": 0.24
+    },
+    "XRP": {
+      "period": 195,
+      "th": 0.26
+    }
+  },
+  "trioEn5m": {
+    "BTC": true,
+    "ETH": true,
+    "SOL": true,
+    "XRP": true
+  },
+  "trioEn15m": {
+    "BTC": false,
+    "ETH": true,
+    "SOL": true,
+    "XRP": true
+  },
+  "cb": null,
+  "dl_n": null,
+  "dl_h": null,
+  "dl_p": null,
+  "mxt1": null,
+  "distmin5m": null,
+  "distmin15m": null,
+  "distdrop": 10,
+  "dir": "down",
+  "skipHours": "0,12",
+  "skipDow": "0",
+  "coord": 2,
+  "nth": false,
+  "en_slip": true,
+  "en_mn": true,
+  "en_mx": true,
+  "en_th": false,
+  "en_body": true,
+  "en_minwr": true,
+  "en_minth": false,
+  "en_maxpos": true,
+  "en_tp": true,
+  "en_cb": false,
+  "en_dl": false,
+  "en_mxt1": false,
+  "en_distmin5m": false,
+  "en_distmin15m": false,
+  "en_distdrop": true,
+  "en_skip_hours": true,
+  "en_skip_dow": true,
+  "en_coord": true,
+  "vol_btc": null,
+  "vol_eth": null,
+  "vol_sol": null,
+  "vol_xrp": null,
+  "oor": false,
+  "bots": 1,
+  "botBalances": null
+}

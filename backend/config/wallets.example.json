@@ -1,0 +1,11 @@
+[
+  {
+    "id": "wallet-b",
+    "label": "Wallet B",
+    "enabled": true,
+    "signerKey": "0x<64-hex-private-key>",
+    "apiKey": "your-polymarket-api-key",
+    "apiSecret": "your-polymarket-api-secret",
+    "apiPassphrase": "your-polymarket-api-passphrase"
+  }
+]

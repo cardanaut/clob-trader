@@ -1,0 +1,18 @@
+# Dependencies
+node_modules/
+
+# Runtime / secrets
+backend/.env
+backend/config/wallets.json
+backend/config/withdrawal.json
+backend/database/*.db
+backend/logs/
+backend/cache/
+backend/data/simulator_history.json
+backend/data/simulator_last_result.json
+backend/data/simulator_v2_settings.json
+
+# Debug / temp
+debug/
+*.log
+.DS_Store
