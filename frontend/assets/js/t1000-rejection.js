@@ -330,6 +330,59 @@ function renderRejectedStats() {
   panel.style.display = 'block';
 }
 
+// ── Setup panel: rejection checkboxes ─────────────────────────────────────────
+
+function renderSetupRejCheckboxes(stateObj) {
+  const container = document.getElementById('setup-rej-checkboxes');
+  if (!container) return;
+  const activeReasons = stateObj?.rejTradeReasons ?? [];
+  const byReason = _rejectedStats?.byReason ?? {};
+
+  container.innerHTML = REJ_OVERRIDEABLE.map(reason => {
+    const label   = REJ_STATS_LABEL[reason] || reason.replace(/_/g,' ').toUpperCase();
+    const checked = activeReasons.includes(reason);
+    const s       = byReason[reason];
+
+    let statsStr = '';
+    if (s && (s.WIN + s.LOSS) > 0) {
+      const wr  = Math.round(s.WIN / (s.WIN + s.LOSS) * 100);
+      statsStr += ` <span style="color:${wr>=80?'#68d391':wr>=60?'#f6ad55':'#fc8181'};font-size:10px;">${wr}%WR</span>`;
+    }
+    if (s?.fpr != null) {
+      statsStr += ` <span style="color:${s.fpr>=60?'#fc8181':s.fpr>=30?'#f6ad55':'#68d391'};font-size:10px;">${s.fpr}%FP</span>`;
+    }
+    const bg      = checked ? '#1a2f1a' : '#1a1f2a';
+    const border  = checked ? '#276749' : '#2d3748';
+    return `<label style="display:inline-flex;align-items:center;gap:4px;padding:2px 7px;border-radius:4px;cursor:pointer;background:${bg};border:1px solid ${border};" title="${reason}">
+      <input type="checkbox" data-rej-setup-reason="${reason}" ${checked?'checked':''}
+        onchange="toggleSetupRejTrade(this)"
+        style="cursor:pointer;accent-color:#68d391;margin:0;width:12px;height:12px;"
+        onclick="event.stopPropagation()">
+      <span style="color:#cbd5e0;font-size:11px;white-space:nowrap;">${label}</span>${statsStr}
+    </label>`;
+  }).join('');
+}
+
+async function toggleSetupRejTrade(checkbox) {
+  const reason  = checkbox.dataset.rejSetupReason;
+  const current = Array.from(
+    document.querySelectorAll('#setup-rej-checkboxes input[data-rej-setup-reason]:checked')
+  ).map(el => el.dataset.rejSetupReason);
+
+  // Keep activity panel in sync if it has a matching checkbox
+  const actCb = document.querySelector(`#rej-trade-panel input[data-rej-reason="${reason}"]`);
+  if (actCb) actCb.checked = checkbox.checked;
+
+  try {
+    await apiFetch('/t1000/config', 'POST', { strategy: 'LIVE', rejTradeReasons: current });
+    await pollState();
+    renderRejectedStats();
+  } catch (e) {
+    checkbox.checked = !checkbox.checked;
+    console.error('toggleSetupRejTrade failed:', e);
+  }
+}
+
 async function toggleRejTrade(checkbox) {
   const reason  = checkbox.dataset.rejReason;
   const current = (state?.LIVE?.rejTradeReasons ?? []).slice();

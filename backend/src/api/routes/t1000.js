@@ -24,7 +24,7 @@ app.get('/t1000/autoscan', (req, res) => {
   try {
     const fs   = require('fs');
     const path = require('path');
-    const data = JSON.parse(fs.readFileSync(path.join(__dirname, '../../logs/autoscan_v2.json'), 'utf8'));
+    const data = JSON.parse(fs.readFileSync(path.join(__dirname, '../../../logs/autoscan_v2.json'), 'utf8'));
     res.json(data);
   } catch (err) {
     res.status(404).json({ error: 'autoscan_v2.json not found — run: node simulate_combined.js -nf -as' });
@@ -288,7 +288,7 @@ app.get('/t1000/chart-data', async (req, res) => {
     // close/low/high can reflect price moves that happened after the snapshot.
     // Fix: override T+0 bucket OHLC with the accurate sub-candle CSV data.
     const spikePctByBucket = new Map();
-    const csvPath = path.join(__dirname, '../../logs', `t1000_candles_C${candleSize}.csv`);
+    const csvPath = path.join(__dirname, '../../../logs', `t1000_candles_C${candleSize}.csv`);
     if (fs.existsSync(csvPath)) {
       const lines = fs.readFileSync(csvPath, 'utf8').trim().split('\n');
       if (lines.length > 1) {
@@ -559,7 +559,7 @@ function buildLiveAutoscanArgs() {
 /** POST /t1000/run-autoscan — run simulate_combined.js -nf -as to refresh autoscan JSON */
 app.post('/t1000/run-autoscan', authMiddleware, (req, res) => {
   const { execFile } = require('child_process');
-  const scriptPath = require('path').join(__dirname, '../../scripts/simulate_combined.js');
+  const scriptPath = require('path').join(__dirname, '../../../scripts/simulate_combined.js');
   const args = ['--stack-size=65536', scriptPath, '-nf', '-as', ...buildLiveAutoscanArgs()];
   // Locked per-crypto thresholds — fix those in the trio sweep
   const { lockTh5m, lockTh15m } = req.body || {};
@@ -568,7 +568,7 @@ app.post('/t1000/run-autoscan', authMiddleware, (req, res) => {
   if (lockTh15m && typeof lockTh15m === 'object' && Object.keys(lockTh15m).length)
     args.push('-lockth15m', Object.entries(lockTh15m).map(([c,v]) => `${c}:${v}`).join(','));
   execFile(process.execPath, args,
-    { cwd: require('path').join(__dirname, '../../'), env: process.env, timeout: 120_000 },
+    { cwd: require('path').join(__dirname, '../../../'), env: process.env, timeout: 120_000 },
     (err, stdout, stderr) => {
       if (err) {
         logger.error('[api] run-autoscan failed', { error: err.message });
@@ -580,7 +580,7 @@ app.post('/t1000/run-autoscan', authMiddleware, (req, res) => {
       try {
         const _fs          = require('fs');
         const _path        = require('path');
-        const autoscanPath = _path.join(__dirname, '../../logs/autoscan_v2.json');
+        const autoscanPath = _path.join(__dirname, '../../../logs/autoscan_v2.json');
         const statePath    = _path.join(__dirname, '../../../logs/t1000-state.json');
         const scan = JSON.parse(_fs.readFileSync(autoscanPath, 'utf8'));
         const st   = JSON.parse(_fs.readFileSync(statePath, 'utf8'));
@@ -607,10 +607,10 @@ const AUTOSCAN_7D_PATH = require('os').tmpdir() + '/autoscan_7d.json';
 /** POST /t1000/run-autoscan-7d — run simulator with last 7d of data, write to temp file */
 app.post('/t1000/run-autoscan-7d', authMiddleware, (req, res) => {
   const { execFile } = require('child_process');
-  const scriptPath = require('path').join(__dirname, '../../scripts/simulate_combined.js');
+  const scriptPath = require('path').join(__dirname, '../../../scripts/simulate_combined.js');
   const dateFrom   = new Date(Date.now() - 7 * 24 * 3600_000).toISOString().slice(0, 10);
   execFile(process.execPath, ['--stack-size=65536', scriptPath, '-nf', '-as', '-df', dateFrom, '-wr', AUTOSCAN_7D_PATH, ...buildLiveAutoscanArgs()],
-    { cwd: require('path').join(__dirname, '../../'), env: process.env, timeout: 120_000 },
+    { cwd: require('path').join(__dirname, '../../../'), env: process.env, timeout: 120_000 },
     (err) => {
       if (err) {
         logger.error('[api] run-autoscan-7d failed', { error: err.message });
@@ -626,7 +626,7 @@ app.post('/t1000/run-autoscan-7d', authMiddleware, (req, res) => {
 app.get('/t1000/deepscan', (req, res) => {
   try {
     const data = JSON.parse(require('fs').readFileSync(
-      require('path').join(__dirname, '../../logs/deepscan_v2.json'), 'utf8'));
+      require('path').join(__dirname, '../../../logs/deepscan_v2.json'), 'utf8'));
     res.json(data);
   } catch {
     res.status(404).json({ error: 'deepscan_v2.json not found — run Deep Scan first' });
@@ -636,7 +636,7 @@ app.get('/t1000/deepscan', (req, res) => {
 /** POST /t1000/run-deepscan — greedy forward selection of optimal filter settings */
 app.post('/t1000/run-deepscan', authMiddleware, (req, res) => {
   const { execFile } = require('child_process');
-  const scriptPath = require('path').join(__dirname, '../../scripts/simulate_combined.js');
+  const scriptPath = require('path').join(__dirname, '../../../scripts/simulate_combined.js');
   const ultra    = req.body?.ultra    === true;
   const extended = req.body?.extended === true;
   const thorough = req.body?.thorough === true;
@@ -644,7 +644,7 @@ app.post('/t1000/run-deepscan', authMiddleware, (req, res) => {
   const dsFlag   = ultra ? '-ds-ultra' : extended ? '-ds-ext' : thorough ? '-ds-thorough' : fine ? '-ds-fine' : '-ds';
   const args = ['--stack-size=65536', scriptPath, '-nf', dsFlag, ...buildLiveAutoscanArgs()];
   execFile(process.execPath, args,
-    { cwd: require('path').join(__dirname, '../../'), env: process.env, timeout: ultra ? 3_600_000 : extended ? 1_800_000 : thorough ? 900_000 : fine ? 600_000 : 360_000 },
+    { cwd: require('path').join(__dirname, '../../../'), env: process.env, timeout: ultra ? 3_600_000 : extended ? 1_800_000 : thorough ? 900_000 : fine ? 600_000 : 360_000 },
     (err) => {
       if (err) {
         logger.error('[api] run-deepscan failed', { error: err.message });
@@ -653,7 +653,7 @@ app.post('/t1000/run-deepscan', authMiddleware, (req, res) => {
       logger.info('[api] run-deepscan complete');
       try {
         const result = JSON.parse(require('fs').readFileSync(
-          require('path').join(__dirname, '../../logs/deepscan_v2.json'), 'utf8'));
+          require('path').join(__dirname, '../../../logs/deepscan_v2.json'), 'utf8'));
         res.json({ ok: true, result });
       } catch {
         res.json({ ok: true });

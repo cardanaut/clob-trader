@@ -1,6 +1,8 @@
 // ── CLOB Trader — Withdrawal routes ──
 'use strict';
 
+const { ethers } = require('@polymarket/order-utils/node_modules/ethers');
+
 module.exports = function registerWithdrawalRoutes(app, { authMiddleware, withdrawal }) {
 
 // ─── Withdrawal routes ────────────────────────────────────────────────────────
@@ -60,7 +62,7 @@ app.post('/withdrawal/config', authMiddleware, wdPinRateLimit, wdPinCheck, (req,
   const cfg = withdrawal.loadConfig();
   if (destinationWallet !== undefined) {
     // Validate address format
-    if (!ethersV5.utils.isAddress(destinationWallet)) {
+    if (!ethers.utils.isAddress(destinationWallet)) {
       return res.status(400).json({ error: 'Invalid Ethereum address format' });
     }
     // Reject zero / dead addresses

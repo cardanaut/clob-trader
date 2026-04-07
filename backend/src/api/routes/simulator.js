@@ -9,7 +9,7 @@ module.exports = function registerSimulatorRoutes(app, { authMiddleware, t1000En
 
 // ─── Simulator UI routes ──────────────────────────────────────────────────────
 
-const SIM_SETTINGS_PATH = require('path').join(__dirname, '../../data/simulator_settings.json');
+const SIM_SETTINGS_PATH = require('path').join(__dirname, '../../../data/simulator_settings.json');
 
 /** GET /simulator/settings — return stored simulator UI settings */
 app.get('/simulator/settings', (req, res) => {
@@ -34,7 +34,7 @@ app.post('/simulator/settings', authMiddleware, (req, res) => {
   }
 });
 
-const SIM_V2_SETTINGS_PATH = require('path').join(__dirname, '../../data/simulator_v2_settings.json');
+const SIM_V2_SETTINGS_PATH = require('path').join(__dirname, '../../../data/simulator_v2_settings.json');
 
 /** GET /simulator/v2/settings — return stored V2+ simulator UI settings */
 app.get('/simulator/v2/settings', (req, res) => {
@@ -52,7 +52,7 @@ app.post('/simulator/v2/settings', authMiddleware, (req, res) => {
   }
 });
 
-const SIM_HISTORY_PATH = require('path').join(__dirname, '../../data/simulator_history.json');
+const SIM_HISTORY_PATH = require('path').join(__dirname, '../../../data/simulator_history.json');
 const fssH = require('fs');
 
 /** GET /simulator/history — return saved sim-history array */
@@ -89,7 +89,7 @@ app.post('/simulator/history/delete', authMiddleware, (req, res) => {
 app.get('/simulator/last-result', (req, res) => {
   try {
     const data = JSON.parse(require('fs').readFileSync(
-      require('path').join(__dirname, '../../data/simulator_last_result.json'), 'utf8'));
+      require('path').join(__dirname, '../../../data/simulator_last_result.json'), 'utf8'));
     res.json(data);
   } catch {
     res.json({});
@@ -101,7 +101,7 @@ app.post('/simulator/run', authMiddleware, (req, res) => {
   const { execFile } = require('child_process');
   const os  = require('os');
   const fss = require('fs');
-  const scriptPath  = require('path').join(__dirname, '../../scripts/simulate_combined.js');
+  const scriptPath  = require('path').join(__dirname, '../../../scripts/simulate_combined.js');
   const jsonOutPath = require('path').join(os.tmpdir(), `sim_result_${Date.now()}.json`);
 
   const body = req.body || {};
@@ -114,7 +114,7 @@ app.post('/simulator/run', authMiddleware, (req, res) => {
   if (useAutoscan) {
     args.push('-as', '-nf');
   } else {
-    const autoscanPath = require('path').join(__dirname, '../../logs/autoscan_v2.json');
+    const autoscanPath = require('path').join(__dirname, '../../../logs/autoscan_v2.json');
     try { v2data = JSON.parse(fss.readFileSync(autoscanPath, 'utf8')); } catch {}
     // Use body-supplied trios if provided (user tweaked them in UI), else fall back to saved autoscan
     t5 = body.trio5m || v2data?.trio5m || {}; t15 = body.trio15m || v2data?.trio15m || {};
@@ -197,7 +197,7 @@ app.post('/simulator/run', authMiddleware, (req, res) => {
   args.push('-json-out', jsonOutPath);
 
   execFile(process.execPath, args,
-    { cwd: require('path').join(__dirname, '../../'), env: process.env, timeout: 180_000 },
+    { cwd: require('path').join(__dirname, '../../../'), env: process.env, timeout: 180_000 },
     (err, stdout, stderr) => {
       let result = null;
       try { result = JSON.parse(fss.readFileSync(jsonOutPath, 'utf8')); } catch {}
@@ -240,7 +240,7 @@ app.post('/simulator/run', authMiddleware, (req, res) => {
           // wins/losses/pnl/trios come from the simulator (autoscanKalshi already in result).
           if (result.autoscanKalshi) {
             try {
-              const kalPath = require('path').join(__dirname, '../../logs/autoscan_kalshi.json');
+              const kalPath = require('path').join(__dirname, '../../../logs/autoscan_kalshi.json');
               const kd = JSON.parse(fss.readFileSync(kalPath, 'utf8'));
               if (kd.best15m && !result.autoscanKalshi.top) {
                 result.autoscanKalshi.top = mkTop(kd.best15m);
@@ -258,7 +258,7 @@ app.post('/simulator/run', authMiddleware, (req, res) => {
             // Coord check uses cycleStartMs (cycle boundary), not signal detection time —
             // BTC:C65 and SOL:C91 in the same cycle both count for coordination.
             // Per-crypto periods give better WR than forcing a uniform global period.
-            const autoscanPath = require('path').join(__dirname, '../../logs/autoscan_v2.json');
+            const autoscanPath = require('path').join(__dirname, '../../../logs/autoscan_v2.json');
             const v2 = JSON.parse(fss.readFileSync(autoscanPath, 'utf8'));
             for (const [cr, row] of Object.entries(result.autoscan5m?.trios || {})) {
               if (!row) continue;
@@ -276,7 +276,7 @@ app.post('/simulator/run', authMiddleware, (req, res) => {
           } catch {}
         }
         try {
-          const lastPath = require('path').join(__dirname, '../../data/simulator_last_result.json');
+          const lastPath = require('path').join(__dirname, '../../../data/simulator_last_result.json');
           fss.writeFileSync(lastPath, JSON.stringify({ result, params: body, ts: new Date().toISOString() }));
         } catch {}
       }
@@ -288,7 +288,7 @@ app.post('/simulator/run', authMiddleware, (req, res) => {
 /** POST /t1000/backfill — re-run backfill script and reload engine state */
 app.post('/t1000/backfill', authMiddleware, (req, res) => {
   const { execFile } = require('child_process');
-  const scriptPath = require('path').join(__dirname, '../../scripts/backfill_t1000.js');
+  const scriptPath = require('path').join(__dirname, '../../../scripts/backfill_t1000.js');
   const maxPrice   = parseInt(req.body?.maxPrice, 10);
   const env        = {
     ...process.env,
@@ -298,7 +298,7 @@ app.post('/t1000/backfill', authMiddleware, (req, res) => {
     BACKFILL_SKIP_RESCAN: '1',
     ...(maxPrice >= 50 && maxPrice <= 99 ? { BACKFILL_MAX_PRICE_CAP: String(maxPrice) } : {}),
   };
-  execFile(process.execPath, [scriptPath], { cwd: require('path').join(__dirname, '../../'), env }, (err, stdout, stderr) => {
+  execFile(process.execPath, [scriptPath], { cwd: require('path').join(__dirname, '../../../'), env }, (err, stdout, stderr) => {
     if (err) {
       logger.error('[api] Backfill failed', { error: err.message });
       return res.status(500).json({ error: err.message, stderr });

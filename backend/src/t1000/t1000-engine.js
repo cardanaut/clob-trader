@@ -615,6 +615,7 @@ function defaultState() {
       // Overrideable: time_filter, coord_wait, weak_body, weak_t1_body, weak_tc_body,
       //               price_too_high, price_too_low, price_out_of_range
       rejTradeReasons: [],
+      normalTradeOff: false,  // when true: only trade rejection overrides, skip normal passing signals
     }),
     LIVE_KALSHI: makeStrategy({
       ...s15,
@@ -1622,6 +1623,7 @@ function onCandle(candle) {
     const signalCfg = (key === 'LIVE_MINI' && strategies.LIVE) ? strategies.LIVE : strat;
     const is15m = candle_size >= 150;
     const isLive = key === 'LIVE' || key === 'LIVE_KALSHI' || key === 'LIVE_MINI';
+    let _anyRejOverride = false; // set true when a filter failure is overridden via rejTradeReasons
 
     // Paper mirror: paper strategy whose Cxx matches LIVE's effective strategy for THIS crypto
     const liveStrat      = strategies.LIVE;
@@ -1677,6 +1679,7 @@ function onCandle(candle) {
     const bodyThreshold = signalCfg.bodyPct ?? 76;
     if (bodyThreshold > 0 && candleHeight > 0 && (candleBody * 100 / candleHeight) < bodyThreshold) {
       const _rejOrWB = key === 'LIVE' && (strat.rejTradeReasons ?? []).includes('weak_body');
+      if (_rejOrWB) _anyRejOverride = true;
       if (isLive) logger.info(`[t1000] ${key} ${crypto} ${_rejOrWB ? 'OVERRIDE' : 'SKIP'} weak_body body=${candleBody.toFixed(4)} height=${candleHeight.toFixed(4)} ratio=${(candleBody*100/candleHeight).toFixed(1)}%`);
       if (!_rejOrWB) {
         if (key === 'LIVE') recordRejected(crypto, candle_size, direction, absSpike, yes_ask, no_ask,
@@ -1748,6 +1751,7 @@ function onCandle(candle) {
         const dow  = _td.getUTCDay();
         if (skipHours.includes(hour) || skipDow.includes(dow)) {
           const _rejOrTF = key === 'LIVE' && (strat.rejTradeReasons ?? []).includes('time_filter');
+          if (_rejOrTF) _anyRejOverride = true;
           if (isLive) logger.info(`[t1000] ${key} ${crypto} ${_rejOrTF ? 'OVERRIDE' : 'SKIP'} time_filter h${hour} dow${dow}`);
           if (!_rejOrTF) {
             if (key === 'LIVE') recordRejected(crypto, candle_size, direction, absSpike, yes_ask, no_ask,
@@ -1766,6 +1770,7 @@ function onCandle(candle) {
     // direction in the same cycle before executing. Signals are held in liveCoordBuffers
     // for 15 seconds then flushed — all C85 candles for a given cycle arrive within ~2s.
     // coord_wait override: bypass buffer entirely and execute immediately.
+    if (key === 'LIVE' && (strat.coordMinCryptos ?? 0) > 1 && (strat.rejTradeReasons ?? []).includes('coord_wait')) _anyRejOverride = true;
     if (key === 'LIVE' && (strat.coordMinCryptos ?? 0) > 1 && !(strat.rejTradeReasons ?? []).includes('coord_wait')) {
       const coordKey = `${cycleStart}:${direction}`;
       if (!liveCoordBuffers.has(coordKey)) {
@@ -1829,6 +1834,7 @@ function onCandle(candle) {
         : (strat.maxPrice ?? MAX_ENTRY_PRICE);
     if (entryPrice < minPrice) {
       const _rejOrPL = key === 'LIVE' && (strat.rejTradeReasons ?? []).includes('price_too_low');
+      if (_rejOrPL) _anyRejOverride = true;
       if (isLive) logger.info(`[t1000] ${key} ${crypto} ${_rejOrPL ? 'OVERRIDE' : 'SKIP'} price_too_low entry=${(entryPrice*100).toFixed(0)}¢ < min=${(minPrice*100).toFixed(0)}¢`);
       else logger.debug(`[t1000] ${key} ${crypto} skip: CLOB ${(entryPrice*100).toFixed(0)}¢ < floor ${(minPrice*100).toFixed(0)}¢`);
       if (!_rejOrPL) {
@@ -1841,6 +1847,7 @@ function onCandle(candle) {
     }
     if (entryPrice > maxPrice) {
       const _rejOrPH = key === 'LIVE' && (strat.rejTradeReasons ?? []).includes('price_too_high');
+      if (_rejOrPH) _anyRejOverride = true;
       if (isLive) logger.info(`[t1000] ${key} ${crypto} ${_rejOrPH ? 'OVERRIDE' : 'SKIP'} price_too_high entry=${(entryPrice*100).toFixed(0)}¢ > max=${(maxPrice*100).toFixed(0)}¢`);
       else logger.debug(`[t1000] ${key} ${crypto} skip: CLOB ${(entryPrice*100).toFixed(0)}¢ > limit ${(maxPrice*100).toFixed(0)}¢`);
       if (!_rejOrPH) {
@@ -1850,6 +1857,12 @@ function onCandle(candle) {
           cycleStart, _ctxCandles);
         continue;
       }
+    }
+
+    // normalTradeOff: when enabled, only trade rejection overrides — skip normal passing signals
+    if (key === 'LIVE' && (strat.normalTradeOff ?? false) && !_anyRejOverride) {
+      if (isLive) logger.info(`[t1000] ${key} ${crypto} SKIP normalTradeOff=true (no rejection override active)`);
+      continue;
     }
 
     // Record paper trade (LIVE uses duration suffix to allow 5m+15m concurrently)

@@ -556,6 +556,8 @@ async function saveSetup(_authed = false) {
     skipHours        : (() => { const v = (document.getElementById('live-skip-hours')?.value || '').trim(); return v ? v.split(',').map(x => parseInt(x.trim(), 10)).filter(n => !isNaN(n)) : []; })(),
     skipDow          : (() => { const v = (document.getElementById('live-skip-dow')?.value   || '').trim(); return v ? v.split(',').map(x => parseInt(x.trim(), 10)).filter(n => !isNaN(n)) : []; })(),
     ...(() => { const v = parseInt(document.getElementById('live-coord-min')?.value); return isNaN(v) ? {} : { coordMinCryptos: v }; })(),
+    normalTradeOff: !(document.getElementById('live-normal-trade')?.checked ?? true),
+    rejTradeReasons: Array.from(document.querySelectorAll('#setup-rej-checkboxes input[data-rej-setup-reason]:checked')).map(el => el.dataset.rejSetupReason),
   };
   for (const el of document.querySelectorAll('#panel-SETUP .thresh-crypto-input[data-strat="LIVE"]')) {
     const cr = el.dataset.crypto, dur = el.dataset.dur;
@@ -794,6 +796,8 @@ function exportSettings() {
     skipHours        : (() => { const v = (document.getElementById('live-skip-hours')?.value || '').trim(); return v ? v.split(',').map(x => parseInt(x.trim(), 10)).filter(n => !isNaN(n)) : []; })(),
     skipDow          : (() => { const v = (document.getElementById('live-skip-dow')?.value   || '').trim(); return v ? v.split(',').map(x => parseInt(x.trim(), 10)).filter(n => !isNaN(n)) : []; })(),
     coordMinCryptos  : parseInt(document.getElementById('live-coord-min')?.value) || 0,
+    normalTradeOff   : !gc('live-normal-trade'),
+    rejTradeReasons  : Array.from(document.querySelectorAll('#setup-rej-checkboxes input[data-rej-setup-reason]:checked')).map(el => el.dataset.rejSetupReason),
     lockedThresholds: {},
   };
 
@@ -864,6 +868,8 @@ function importSettings(event) {
       if (s.skipHours != null) { const el = g('live-skip-hours'); if (el) el.value = Array.isArray(s.skipHours) ? s.skipHours.join(',') : (s.skipHours || ''); }
       if (s.skipDow   != null) { const el = g('live-skip-dow');   if (el) el.value = Array.isArray(s.skipDow)   ? s.skipDow.join(',')   : (s.skipDow   || ''); }
       const _coordV = s.coordMinCryptos ?? s.coordMin; if (_coordV != null) sv('live-coord-min', _coordV);
+      if (s.normalTradeOff !== undefined) sc('live-normal-trade', s.normalTradeOff !== true);
+      if (Array.isArray(s.rejTradeReasons) && typeof renderSetupRejCheckboxes === 'function') renderSetupRejCheckboxes(s);
 
       for (const el of document.querySelectorAll('#panel-SETUP .thresh-crypto-input[data-strat="LIVE"]')) {
         const key = `threshold${el.dataset.dur}_${el.dataset.crypto}`;
@@ -1441,6 +1447,10 @@ function renderState(data) {
             if (resetAtVal) resetAtVal.textContent = s.resetAt ? fmtEAT(s.resetAt) : '—';
             const resetBalEl = document.getElementById('live-reset-bal');
             if (resetBalEl) resetBalEl.textContent = s.resetAt && s.baseEoaBalance != null ? `@ $${s.baseEoaBalance.toFixed(2)}` : '';
+            // Rejection trading controls
+            const ntEl = document.getElementById('live-normal-trade');
+            if (ntEl && s.normalTradeOff !== undefined) ntEl.checked = s.normalTradeOff !== true;
+            if (typeof renderSetupRejCheckboxes === 'function') renderSetupRejCheckboxes(s);
           }
         } else {
           // LIVE_KALSHI or when base not yet loaded: fall back to activityLog sum

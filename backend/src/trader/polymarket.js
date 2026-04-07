@@ -62,7 +62,17 @@ const HOST        = process.env.POLY_CLOB_HOST    || 'https://clob.polymarket.co
 const CHAIN_ID    = parseInt(process.env.POLY_CHAIN_ID || '137', 10);
 const API_KEY     = process.env.POLY_API_KEY;
 const API_SECRET  = process.env.POLY_API_SECRET;   // HMAC key for L2 REST auth headers
-const SIGNER_KEY  = process.env.POLY_SIGNER_KEY;   // EIP-712 private key — must be set explicitly
+const SIGNER_KEY  = (() => {                        // EIP-712 private key — must be set explicitly
+  const keyFile = process.env.POLY_SIGNER_KEY_FILE;
+  if (keyFile) {
+    try {
+      return require('fs').readFileSync(keyFile, 'utf8').trim();
+    } catch (e) {
+      throw new Error(`POLY_SIGNER_KEY_FILE set but could not read "${keyFile}": ${e.message}`);
+    }
+  }
+  return process.env.POLY_SIGNER_KEY;
+})();
 const API_PASS    = process.env.POLY_API_PASSPHRASE;
 
 // USDC.e (bridged USDC) — the actual Polymarket CLOB collateral on Polygon.

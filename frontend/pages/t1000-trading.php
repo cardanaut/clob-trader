@@ -1428,6 +1428,26 @@ input:checked + .toggle-slider:before { transform: translateX(20px); background:
         </div>
       </div>
 
+      <!-- Row 6.7: Rejection Trading — normal signals toggle + per-reason override checkboxes -->
+      <div style="background:#1a1030;border:1px solid #553c9a;border-radius:8px;padding:10px 14px;margin-top:6px;">
+        <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+          <span style="color:#b794f4;font-size:13px;font-weight:700;">&#x26A1; Rejection Trading</span>
+          <label style="display:flex;align-items:center;gap:6px;cursor:pointer;"
+            title="ON = also trade normal passing signals (default). OFF = ONLY trade rejection overrides."
+            onclick="event.stopPropagation()">
+            <input type="checkbox" id="live-normal-trade" checked
+              style="width:14px;height:14px;cursor:pointer;accent-color:#68d391;"
+              onclick="event.stopPropagation()" />
+            <span style="color:#68d391;font-size:12px;font-weight:600;">Normal signals</span>
+          </label>
+          <span style="color:#4a5568;font-size:11px;margin:0 2px;">|</span>
+          <span style="color:#a0aec0;font-size:11px;">Also trade on rejection:</span>
+          <div id="setup-rej-checkboxes" style="display:flex;flex-wrap:wrap;gap:4px;align-items:center;min-height:22px;">
+            <span style="color:#4a5568;font-size:11px;font-style:italic;">loading…</span>
+          </div>
+        </div>
+      </div>
+
       <!-- Row 7: No Spike Filter (hidden: research mode only) -->
       <div style="display:none;background:#2d1a00;border:1px solid #c05621;border-radius:8px;padding:10px 14px;margin-top:10px;">
         <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
