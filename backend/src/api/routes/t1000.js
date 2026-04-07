@@ -3,7 +3,7 @@
 const fs            = require('fs');
 const path          = require('path');
 const { execFile }  = require('child_process');
-const logger        = require('../utils/logger');
+const logger        = require('../../utils/logger');
 
 module.exports = function registerT1000Routes(app, { authMiddleware, t1000Engine, query }) {
 

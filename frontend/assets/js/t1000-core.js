@@ -1674,9 +1674,12 @@ window.addEventListener('storage', e => {
   if (e.key === 'polychamp_live_applied') { setupDirty = false; pollState(); }
 });
 
-switchSection('LIVE');
-pollState();
-setInterval(pollState, 4000);
-pollLivePrices();
-setInterval(pollLivePrices, 2000);
-setInterval(updatePositionGauges, 1000);
+// Defer cross-module calls until all scripts have loaded
+document.addEventListener('DOMContentLoaded', () => {
+  switchSection('LIVE');
+  pollState();
+  setInterval(pollState, 4000);
+  pollLivePrices();
+  setInterval(pollLivePrices, 2000);
+  setInterval(updatePositionGauges, 1000);
+});

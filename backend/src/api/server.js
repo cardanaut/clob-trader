@@ -1,4 +1,4 @@
-require('dotenv').config({ path: require('path').join(__dirname, '../../../.env') });
+require('dotenv').config({ path: require('path').join(__dirname, '../../.env') });
 
 const express = require('express');
 const rateLimit = require('express-rate-limit');
@@ -438,9 +438,6 @@ const VALID_CANDLES_15M = new Set([150, 157, 159, 161, 163, 165, 167, 169, 171, 
 const VALID_CANDLES     = new Set([...VALID_CANDLES_5M, ...VALID_CANDLES_15M]);
 
 // ─── Route modules ────────────────────────────────────────────────────────────
-// Dependencies available after this point are passed into each router factory.
-const withdrawal = require('../trader/usdc-withdrawal');
-
 const routeDeps = { authMiddleware, t1000Engine, query, withdrawal };
 require('./routes/spike')(app, routeDeps);
 require('./routes/t1000')(app, routeDeps);

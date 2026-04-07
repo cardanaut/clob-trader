@@ -1,9 +1,9 @@
 // ── CLOB Trader — Spike trading routes ──
 'use strict';
 const rateLimit      = require('express-rate-limit');
-const spikeConfig    = require('../spike/config');
-const logger         = require('../utils/logger');
-const clobWebsocket  = require('../spike/clob-websocket');
+const spikeConfig    = require('../../spike/config');
+const logger         = require('../../utils/logger');
+const clobWebsocket  = require('../../spike/clob-websocket');
 
 module.exports = function registerSpikeRoutes(app, { authMiddleware }) {
 
@@ -84,7 +84,7 @@ app.post('/spike-backtest', apiLimiter, async (req, res) => {
     logger.info('[api] Starting spike backtest', { maxCandles, cryptos, ranges: cryptoRanges });
 
     // Run backtest (this may take a while)
-    const backtest = require('../spike/backtest');
+    const backtest = require('../../spike/backtest');
 
     // If multiple cryptos selected, run in parallel and aggregate
     if (cryptos.length === 1) {
@@ -331,7 +331,7 @@ app.get('/spike-balance', async (req, res) => {
       });
     } else {
       // Live mode: get real balance from Polymarket
-      const poly = require('../trader/polymarket');
+      const poly = require('../../trader/polymarket');
       const balanceInfo = await poly.getBalance();
 
       if (balanceInfo === null) {
@@ -367,7 +367,7 @@ app.get('/spike-balance', async (req, res) => {
 app.get('/spike-market-prices', async (req, res) => {
   try {
     const crypto = req.query.crypto || 'XRP';
-    const gamma = require('../spike/gamma-api');
+    const gamma = require('../../spike/gamma-api');
 
     // Crypto slug patterns for 5-minute markets
     const slugPatterns = {
@@ -659,7 +659,7 @@ app.post('/spike-backtest-config', authMiddleware, apiLimiter, async (req, res) 
 app.get('/spike-config', async (req, res) => {
   try {
     // Read from spike config file
-    const spikeConfig = require('../spike/config');
+    const spikeConfig = require('../../spike/config');
 
     // Read settings from database
     const settingsRes = await query("SELECT setting_key, setting_value FROM spike_settings WHERE setting_key IN ('max_entry_price', 'detection_strategy', 'max_capital_risk_pct')");
@@ -699,7 +699,7 @@ app.post('/spike-config', authMiddleware, apiLimiter, async (req, res) => {
   try {
     const { position_size_pct, max_entry_price, max_capital_risk_pct, detection_strategy } = req.body;
 
-    const spikeConfig = require('../spike/config');
+    const spikeConfig = require('../../spike/config');
 
     // Validate position_size_pct
     const positionSize = parseFloat(position_size_pct);

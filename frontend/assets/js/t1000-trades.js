@@ -532,6 +532,7 @@ async function deleteHistoryEntry(i, _authed = false) {
   const r = await apiFetch('/t1000/config', 'POST', { stratKey: 'LIVE', deleteHistoryIndex: i });
   if (r && !r.error) await pollState();
   else alert('Delete error: ' + (r?.error || 'unknown'));
+}
 
 // ─────────────────────────────────────────────────────────────────────────
 
@@ -556,7 +557,7 @@ async function loadAllTrades(page) {
   body.innerHTML = '<div class="empty-log" style="color:#718096;">Loading…</div>';
   try {
     const hideFailed = document.getElementById('all-trades-hide-failed')?.checked ? '&hideFailed=1' : '';
-    const url  = `/api/t1000/live-trades?strategy=LIVE,LIVE_MINI&page=${page}&limit=${ALL_TRADES_LIMIT}${hideFailed}`;
+    const url  = `${API_BASE}/t1000/live-trades?strategy=LIVE,LIVE_MINI&page=${page}&limit=${ALL_TRADES_LIMIT}${hideFailed}`;
     const resp = await fetch(url);
     if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
     const data = await resp.json();
@@ -713,7 +714,7 @@ async function loadAllTradesKalshi(page) {
 
   body.innerHTML = '<div class="empty-log" style="color:#718096;">Loading…</div>';
   try {
-    const url  = `/api/t1000/live-trades?strategy=LIVE_KALSHI&page=${page}&limit=${ALL_TRADES_LIMIT}`;
+    const url  = `${API_BASE}/t1000/live-trades?strategy=LIVE_KALSHI&page=${page}&limit=${ALL_TRADES_LIMIT}`;
     const resp = await fetch(url);
     if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
     const data = await resp.json();
