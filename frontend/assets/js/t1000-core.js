@@ -1,6 +1,6 @@
 // ── CLOB Trader — Core: globals, tab management, config, renderState ──
 
-const API_BASE = 'https://jeer.currenciary.com/api';
+const API_BASE = 'https://jeer.currenciary.com/clob-api';
 const STRAT_KEYS = ['LIVE', 'LIVE_KALSHI', 'LIVE_MINI', 'C95', 'C90', 'C85', 'C80', 'C75', 'C70', 'C65', 'C60', 'C55', 'C50',
                     'C255', 'C240', 'C225', 'C210', 'C195', 'C180', 'C165', 'C150'];
 // Map from stratKey → tabKey (for badge tracking)
